@@ -15,11 +15,21 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--triggerport", type=int, help="A scan here will trigger the defenses", required=True)
 parser.add_argument("-f", "--fakeport", type=int, nargs='+', help="ports to show as up to blacklisted clients", required=True)
 parser.add_argument("-a", "--allowport", type=int,  nargs='+', help="ports not to fake")
-parser.add_argument("-r", "--redirectport", type=int, help="port to redirect")
+parser.add_argument("-r", "--redirectport", type=int, help="port to redirect", required=True)
 args = parser.parse_args()
 
 #IP to bind to.  Leave as empty string to bind to all available IPs
 ADDR=''
+
+"""
+#인자 예외처리 필요
+#if args.triggerport in fake
+
+if args.redirectport in fakeport :
+	print ("Cannot use ridirect port as fake port!")
+
+if args.redirectport not in allowport:
+"""
 
 
 #Name of blacklist file
@@ -49,8 +59,9 @@ def blacklist(ip):
 		os.system(query)
 
 		#config redirect
-		for port in args.fakeport:
-			query = "iptables -t nat -A PREROUTING -s %s -p tcp --dport %s -j REDIRECT --to-port %s" % (ip,port, str(args.redirect))
+		if args.redirectport :
+			query = "iptables -t nat -A PREROUTING -s %s -m multiport -p tcp --dport %s -j REDIRECT --to-port %s" % (ip, str(args.fakeport)[1:-1].replace(" ", ""), str(args.redirectport))
+			print query
 			os.system(query)
 
 		add_blacklist(ip)
